@@ -1,0 +1,92 @@
+# Use BST if true, otherwise use GPT
+use_bst: true
+
+trainer:
+  train_batches: 36000
+  val_batches: -1
+  val_only: false
+  log_interval: 10
+  val_interval: 1000
+
+  # Checkpointing
+  out_dir: /mnt/ddn/alta04/byronxu/bst-phi/
+  init_from: resume
+  save_recovery_checkpoint: 0
+  keep_checkpoint_steps: [12000, 24000, 36000]
+
+  # Logging
+  log_to_file: true
+  log_to_wandb: true
+  wandb_project: bst-phi
+
+  # Compile model with torch.compile
+  compile: true
+  # Use fused kernels
+  use_fused_kernels: false
+  # Garbage collect after every N steps
+  garbage_collect: 10
+
+data:
+  # Name of the datamodule to use
+  dataset: pretokenized
+  # Total batch size per gradient update
+  effective_batch_size: 1024
+  # Number of forward/backward passes to accumulate
+  gradient_accum_steps: 32
+  # Batch size to process BST pairs
+  # This is independent of all other batch sizes
+  pair_batch_size: 8192
+  # Number of worker processes for dataloader
+  num_workers: 0
+
+  # For pretokenized dataset only
+  pretokenized_data_path: /mnt/ddn/alta04/byronxu/phi_data_split/
+  # Can be a list of files or a list of [file, weight] pairs
+  pretokenized_train_data:
+    - [code_contest_CCa_train.npy, 2]
+    - [textbook_v4_train.npy, 2]
+    - [stackoverflow-with-meta-data-filtered_6_train.npy, 2]
+    - [the-stack-dedup-python-filtered_5_train.npy, 1]
+  pretokenized_val_data:
+    - code_contest_CCa_val.npy
+    - textbook_v4_val.npy
+    - stackoverflow-with-meta-data-filtered_6_val.npy
+    - the-stack-dedup-python-filtered_5_val.npy
+  # Huggingface repo name or file path to load the tokenizer used
+  tokenizer_name_or_path: "microsoft/phi-1"
+
+model:
+  n_layer: 24
+  n_head: 32
+  n_embd: 2048
+  dropout: 0.0
+  bias: false
+  # Total number of tokens in the vocabulary
+  vocab_size: 50304
+  # This is the actual context length of the model
+  block_size: 2048
+  # This is a prefix for stargraph
+  context_length: 0
+
+  # BST specific options
+  # Min and max gap between two tokens in a pair
+  bst_pair_minimum_gap: 1
+  bst_pair_maximum_gap: -1
+  # Probability used to randomly subsample pairs
+  # If 1.0, then train on all pairs
+  bst_pair_subsample_rate: 0.025
+  # What to predict for gap size 1: "next_token" or "eos"
+  bst_single_gap_prediction_mode: eos
+
+optimizer:
+  learning_rate: 1e-3
+  weight_decay: 0.1
+  beta1: 0.9
+  beta2: 0.95
+  grad_clip: 1.0
+
+lr_scheduler:
+  decay_lr: true
+  warmup_iters: 750
+  lr_decay_iters: 36000
+  min_lr: 1e-4

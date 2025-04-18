@@ -1,0 +1,30 @@
+name: Python Code Formatting
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - '*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  python-formatting:
+    name: python_formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+      - run: pip install black black[jupyter]
+      - shell: bash
+        run: |
+          python -m black --check . || (echo -e "---\nTo fix, run:\n\tpython -m black ."; exit 1)

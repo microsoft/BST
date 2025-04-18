@@ -1,0 +1,42 @@
+# Mount Azure blob storage with `blobfuse2`
+
+# Create mount point and cache directory. Both should be owned by your user.
+# Cache should ideally be on a separate disk.
+# sudo mkdir -p /mnt/blob
+# sudo chown -R $USER:$USER /mnt/blob
+# sudo mkdir -p /datadisk/blobcache
+# sudo chown -R $USER:$USER /datadisk/blobcache
+
+# Login to Azure CLI
+# az login
+
+# Mount blob storage
+# blobfuse2 mount /mnt/blob --config-file=/path/to/mount_blob_storage.yaml
+
+# Unmount blob storage
+# blobfuse2 unmount /mnt/blob
+
+components:
+  - libfuse
+  - block_cache
+  - attr_cache
+  - azstorage
+
+azstorage:
+  # type is "adls" for Azure Data Lake Storage and "blob" for Azure Blob Storage
+  type: adls
+  # Set to your storage account
+  account-name: bstphi
+  endpoint: https://bstphi.blob.core.windows.net
+  container: dataset
+  # Authentication method
+  mode: azcli
+
+block_cache:
+  path: /datadisk/blobcache
+  block-size-mb: 64
+  #mem-size-mb: <total amount of memory to be preallocated for block cache (in MB). Default - 80% of free memory>
+  #disk-size-mb: <maximum disk cache size allowed. Default - 80% of free disk space>
+  #disk-timeout-sec: <default disk cache eviction timeout (in sec). Default - 120 sec>
+  #prefetch: <number of blocks to be prefetched in serial read case. Min - 11, Default - 2 times number of CPU cores>
+  #parallelism: <number of parallel threads downloading the data and writing to disk cache. Default - 3 times number of CPU cores> 

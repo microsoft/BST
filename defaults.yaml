@@ -1,0 +1,111 @@
+# Use BST if true, otherwise use GPT
+use_bst: true
+
+trainer:
+  train_batches: 600000
+  val_batches: 128
+  val_only: false
+  log_interval: 10
+  val_interval: 2000
+
+  # Checkpointing
+  # Save checkpoint after latest validation step
+  save_last_checkpoint: true
+  # Save checkpoint after validation step with lowest loss
+  save_best_checkpoint: true
+  # Keep all checkpoints
+  always_save_checkpoint: false
+  # Save checkpoint every N training steps
+  save_recovery_checkpoint: -1
+  # Always keep checkpoints at these steps
+  # Must be multiples of val_interval
+  keep_checkpoint_steps: []
+  out_dir: out
+  # "scratch" or "resume"
+  init_from: scratch
+
+  # Logging
+  log_to_file: false
+  log_to_wandb: false
+  wandb_project: bst-tinystories
+
+  # Compile model with torch.compile
+  compile: true
+  # Use fused kernels
+  use_fused_kernels: false
+  # Garbage collect after every N steps
+  garbage_collect: -1
+
+  # Whether to generate and print samples during validation
+  print_samples: false
+  sampling_mode: AR
+
+data:
+  # Name of the datamodule to use
+  dataset: tinystories
+  # Total batch size per gradient update
+  effective_batch_size: 256
+  # Number of forward/backward passes to accumulate
+  gradient_accum_steps: 1
+  # Batch size to process BST pairs
+  # This is independent of all other batch sizes
+  pair_batch_size: 32768
+  # Number of worker processes for dataloader
+  num_workers: 0
+
+  # For tinystories fill in middle only
+  goal_range: [25, 75]
+
+  # For pretokenized dataset only
+  pretokenized_data_path: ""
+  # Can be a list of files or a list of [file, weight] pairs
+  pretokenized_train_data: []
+  pretokenized_val_data: []
+  # Huggingface repo name or file path to load the tokenizer used
+  tokenizer_name_or_path: ""
+  # Fallback if tokenizer_name_or_path is not specified
+  tokenizer_eos_id: -1
+
+  # For stargraph only
+  stargraph_data_path: ""
+  stargraph_max_nodes: 50
+
+model:
+  n_layer: 8
+  n_head: 8
+  n_embd: 768
+  dropout: 0.0
+  bias: false
+  # Total number of tokens in the vocabulary
+  vocab_size: 1000
+  # This is the actual context length of the model
+  block_size: 256
+  # This is a prefix for stargraph
+  context_length: 0
+
+  # BST specific options
+  # Min and max gap between two tokens in a pair
+  bst_pair_minimum_gap: 1
+  bst_pair_maximum_gap: -1
+  # Probability used to randomly subsample pairs
+  # If 1.0, then train on all pairs
+  bst_pair_subsample_rate: 1.0
+  # What to predict for gap size 1: "next_token" or "eos"
+  bst_single_gap_prediction_mode: eos
+
+  # GPT specific options
+  # "next_token" or "fim"
+  gpt_mode: next_token
+
+optimizer:
+  learning_rate: 0.0003
+  weight_decay: 0.1
+  beta1: 0.9
+  beta2: 0.95
+  grad_clip: 1.0
+
+lr_scheduler:
+  decay_lr: true
+  warmup_iters: 1
+  lr_decay_iters: 600000
+  min_lr: 0.0002

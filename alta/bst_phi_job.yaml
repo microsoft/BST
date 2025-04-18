@@ -1,0 +1,81 @@
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: bst-phi
+spec:
+  minAvailable: 4 # Set to number of nodes you want
+  schedulerName: volcano
+  queue: default
+  plugins:
+    ssh: []
+    svc: [] # Provides /etc/volcano/ directory
+    env: [] # Provides $VC_TASK_INDEX environment variable
+  tasks:
+    - replicas: 4 # Set to number of nodes you want
+      name: node
+      policies:
+        - event: TaskCompleted
+          action: CompleteJob
+      template:
+        spec:
+          hostNetwork: true
+          dnsPolicy: ClusterFirstWithHostNet
+          restartPolicy: OnFailure
+          volumes:
+            - name: ssh-script
+              configMap:
+                name: ssh-setup
+            - name: home
+              hostPath:
+                path: /home/core/byronxu # Set to your home sub-directory
+                type: Directory
+            - name: ddn-volume
+              hostPath:
+                path: /ddn # This is where DDN storage was mounted on the host
+                type: Directory
+            - name: dshm
+              emptyDir:
+                medium: Memory
+                sizeLimit: 8Gi
+          containers:
+            - name: node
+              image: nvcr.io/nvidia/pytorch:25.02-py3
+              securityContext:
+                privileged: true  # Grant privileged mode to the container
+              resources:
+                requests:
+                  cpu: "128"            # Request CPU
+                  memory: "1600Gi"      # Request memory
+                limits:
+                  cpu: "128"            # Limit CPU usage
+                  nvidia.com/gpu: "8"   # Limit GPUs
+                  memory: "1600Gi"      # Limit memory
+              command:
+                - /bin/bash
+                - "-c"
+                - |
+                  set -e
+                  cp /ssh-setup.sh /ssh-setup2.sh
+                  chmod +x /ssh-setup2.sh
+                  /ssh-setup2.sh  # Run SSH setup
+                  nvidia-smi
+
+                  cd /mnt/home/Belief_State_Transformer
+                  ./alta/run_bst_training.sh
+                  echo "Done"
+              volumeMounts:
+                - name: ssh-script
+                  mountPath: /ssh-setup.sh
+                  subPath: ssh-setup.sh
+                - name: ddn-volume
+                  mountPath: /mnt/ddn # This is where DDN gets mounted inside the container
+                - name: home
+                  mountPath: /mnt/home # This is where your home directory gets mounted inside the container
+                - name: dshm
+                  mountPath: /dev/shm
+              workingDir: /mnt/home
+              env:
+                - name: WANDB_HOST
+                  value: "https://microsoft-research.wandb.io"
+                - name: WANDB_API_KEY
+                  value: "" # Set to your wandb API key

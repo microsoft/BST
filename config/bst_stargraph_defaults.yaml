@@ -1,0 +1,48 @@
+use_bst: true
+
+trainer:
+  train_batches: 5000
+  val_batches: 200
+  val_only: false
+  log_interval: 1
+  val_interval: 2000
+  out_dir: out
+  init_from: scratch
+  wandb_log: false
+  wandb_project: ""
+  compile: true
+
+data:
+  dataset: stargraph
+  effective_batch_size: 256
+  gradient_accum_steps: 1
+  pair_accum_steps: 1
+  goal_range: [25, 75]
+  num_workers: 0
+  stargraph_data_path: "data/stargraph/graph_5_5_sample_8000000.txt"
+  stargraph_max_nodes: 50
+
+model:
+  n_layer: 6
+  n_head: 8
+  n_embd: 768
+  dropout: 0.0
+  bias: false
+  vocab_size: 0 #will be overwritten by datamodule
+  block_size: 1024
+  context_length: 0
+  gpt_mode: next_token
+  bst_pair_minimum_gap: 2
+
+optimizer:
+  learning_rate: 1e-4
+  weight_decay: 0.0
+  beta1: 0.9
+  beta2: 0.95
+  grad_clip: null
+
+lr_scheduler:
+  decay_lr: false
+  warmup_iters: 1
+  lr_decay_iters: 600000
+  min_lr: 0.0002

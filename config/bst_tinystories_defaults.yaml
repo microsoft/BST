@@ -1,0 +1,50 @@
+use_bst: true
+
+trainer:
+  train_batches: 100000
+  val_batches: -1
+  val_only: false
+  log_interval: 10
+  val_interval: 1000
+  out_dir: output/bst-tinystories
+  init_from: scratch
+  log_to_file: true
+  log_to_wandb: true
+  wandb_project: bst-tinystories
+  compile: true
+  print_samples: false
+  sampling_mode: AR
+
+data:
+  dataset: tinystories
+  effective_batch_size: 256
+  gradient_accum_steps: 1
+  pair_batch_size: 32768
+  goal_range: [25, 75]
+  num_workers: 0
+
+model:
+  n_layer: 8
+  n_head: 8
+  n_embd: 768
+  dropout: 0.0
+  bias: false
+  vocab_size: 1000
+  block_size: 256
+  context_length: 0
+  bst_pair_minimum_gap: 1
+  bst_single_gap_prediction_mode: eos
+  gpt_mode: next_token
+
+optimizer:
+  learning_rate: 0.0003
+  weight_decay: 0.1
+  beta1: 0.9
+  beta2: 0.95
+  grad_clip: 1.0
+
+lr_scheduler:
+  decay_lr: true
+  warmup_iters: 1
+  lr_decay_iters: 600000
+  min_lr: 0.0002

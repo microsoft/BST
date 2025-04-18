@@ -1,0 +1,15 @@
+.DS_Store
+.idea
+.ipynb_checkpoints/
+.vscode
+__pycache__/
+*.bin
+*.pkl
+*.pt
+*.pyc
+*.txt
+input.txt
+env/
+venv/ 
+wandb/
+.venv/
