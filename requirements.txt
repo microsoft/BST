@@ -1,0 +1,9 @@
+torch>=2.6.0
+transformers
+datasets
+omegaconf>=2.3.0
+wandb
+trl
+scikit-learn
+lightning
+liger-kernel
