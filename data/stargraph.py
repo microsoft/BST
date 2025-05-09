@@ -25,8 +25,8 @@ class Tokenizer:
         # stargraph has no eos token, padded sequence masking
         # doesn't need to happen, but this property is needed
         # for compatibility with the bst training code
-        self.eos_token_id = maxNodes + 4   
-        
+        self.eos_token_id = maxNodes + 4
+
     def encode(self, data):
         out = []
         i = 0
